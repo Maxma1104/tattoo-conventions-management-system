@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
-import { LogIn, AlertCircle, UserPlus } from 'lucide-react';
+import { LogIn, AlertCircle, UserPlus, Globe } from 'lucide-react';
 
 export const Login = () => {
+  const { t, i18n } = useTranslation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,6 +15,10 @@ export const Login = () => {
   
   const { login, signup, user, isLoading } = useAuthStore();
   const navigate = useNavigate();
+
+  const changeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    i18n.changeLanguage(e.target.value);
+  };
 
   useEffect(() => {
     if (user) {
@@ -49,14 +55,27 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-zinc-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <Globe className="w-4 h-4 text-zinc-400" />
+        <select
+          value={i18n.language}
+          onChange={changeLanguage}
+          className="bg-zinc-800 border border-zinc-700 text-sm rounded-md px-2 py-1 text-zinc-300 focus:ring-red-500 focus:border-red-500"
+        >
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+        </select>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <h1 className="text-4xl font-bold text-red-500 tracking-wider">INKFLOW</h1>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-          {isSignUp ? 'Create an account' : 'Sign in to your account'}
+          {isSignUp ? t('login.createAccount') : t('login.signIn')}
         </h2>
         <p className="mt-2 text-center text-sm text-zinc-400">
-          Convention Management System
+          {t('login.subtitle')}
         </p>
       </div>
 
@@ -73,7 +92,7 @@ export const Login = () => {
             {isSignUp && (
               <div>
                 <label className="block text-sm font-medium text-zinc-300">
-                  Full Name
+                  {t('login.fullName')}
                 </label>
                 <div className="mt-1">
                   <input
@@ -90,7 +109,7 @@ export const Login = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
-                Email address
+                {t('login.email')}
               </label>
               <div className="mt-1">
                 <input
@@ -109,7 +128,7 @@ export const Login = () => {
 
             <div>
               <label className="block text-sm font-medium text-zinc-300">
-                Password
+                {t('login.password')}
               </label>
               <div className="mt-1">
                 <input
@@ -117,7 +136,7 @@ export const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-zinc-600 rounded-md shadow-sm placeholder-zinc-500 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm bg-zinc-900 text-white"
-                  placeholder={isSignUp ? "Min 6 characters" : "Leave empty for legacy demo accounts"}
+                  placeholder={isSignUp ? t('login.passwordHint') : t('login.passwordHintLegacy')}
                 />
               </div>
             </div>
@@ -125,7 +144,7 @@ export const Login = () => {
             {isSignUp && (
               <div>
                 <label className="block text-sm font-medium text-zinc-300">
-                  Role
+                  {t('login.role')}
                 </label>
                 <div className="mt-2 flex gap-4">
                   <label className="flex items-center">
@@ -136,7 +155,7 @@ export const Login = () => {
                       onChange={(e) => setRole(e.target.value as 'artist')}
                       className="text-red-600 focus:ring-red-500 bg-zinc-900 border-zinc-600"
                     />
-                    <span className="ml-2 text-zinc-300">Artist</span>
+                    <span className="ml-2 text-zinc-300">{t('login.artist')}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -146,7 +165,7 @@ export const Login = () => {
                       onChange={(e) => setRole(e.target.value as 'manager')}
                       className="text-red-600 focus:ring-red-500 bg-zinc-900 border-zinc-600"
                     />
-                    <span className="ml-2 text-zinc-300">Manager</span>
+                    <span className="ml-2 text-zinc-300">{t('login.manager')}</span>
                   </label>
                 </div>
               </div>
@@ -154,7 +173,7 @@ export const Login = () => {
 
             {!isSignUp && (
               <div className="text-xs text-zinc-400 bg-zinc-900 p-3 rounded border border-zinc-700">
-                <p className="font-medium text-zinc-300 mb-1">Legacy Demo Accounts (No password required):</p>
+                <p className="font-medium text-zinc-300 mb-1">{t('login.demoAccounts')}</p>
                 <ul className="list-disc pl-4 space-y-1">
                   <li>Manager: manager@test.com</li>
                   <li>Artist: artist1@test.com</li>
@@ -174,12 +193,12 @@ export const Login = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {isSignUp ? 'Creating account...' : 'Signing in...'}
+                    {isSignUp ? t('login.btnCreating') : t('login.btnSigningIn')}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     {isSignUp ? <UserPlus className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
-                    {isSignUp ? 'Sign Up' : 'Sign In'}
+                    {isSignUp ? t('login.btnSignUp') : t('login.btnSignIn')}
                   </span>
                 )}
               </button>
@@ -194,7 +213,7 @@ export const Login = () => {
                 }}
                 className="text-sm text-red-400 hover:text-red-300 transition-colors"
               >
-                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+                {isSignUp ? t('login.toggleSignIn') : t('login.toggleSignUp')}
               </button>
             </div>
           </form>

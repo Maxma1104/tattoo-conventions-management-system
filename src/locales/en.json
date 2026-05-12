@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "conventions": "Conventions",
+    "orders": "Orders",
+    "appointments": "Appointments",
+    "accommodations": "Accommodations",
+    "finances": "Finances",
+    "mySchedule": "My Schedule",
+    "logout": "Logout"
+  },
+  "login": {
+    "signIn": "Sign in to your account",
+    "createAccount": "Create an account",
+    "subtitle": "Convention Management System",
+    "fullName": "Full Name",
+    "email": "Email address",
+    "password": "Password",
+    "passwordHint": "Min 6 characters",
+    "passwordHintLegacy": "Leave empty for legacy demo accounts",
+    "role": "Role",
+    "artist": "Artist",
+    "manager": "Manager",
+    "demoAccounts": "Legacy Demo Accounts (No password required):",
+    "btnSignUp": "Sign Up",
+    "btnSignIn": "Sign In",
+    "btnCreating": "Creating account...",
+    "btnSigningIn": "Signing in...",
+    "toggleSignIn": "Already have an account? Sign In",
+    "toggleSignUp": "Don't have an account? Sign Up"
+  }
+}

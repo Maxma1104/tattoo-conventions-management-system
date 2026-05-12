@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "conventions": "Conventions",
+    "orders": "Commandes",
+    "appointments": "Rendez-vous",
+    "accommodations": "Hébergements",
+    "finances": "Finances",
+    "mySchedule": "Mon Planning",
+    "logout": "Déconnexion"
+  },
+  "login": {
+    "signIn": "Connectez-vous à votre compte",
+    "createAccount": "Créer un compte",
+    "subtitle": "Système de Gestion de Conventions",
+    "fullName": "Nom Complet",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "passwordHint": "Min 6 caractères",
+    "passwordHintLegacy": "Laissez vide pour les comptes de démo",
+    "role": "Rôle",
+    "artist": "Artiste",
+    "manager": "Manager",
+    "demoAccounts": "Comptes de Démo (Aucun mot de passe requis) :",
+    "btnSignUp": "S'inscrire",
+    "btnSignIn": "Se connecter",
+    "btnCreating": "Création du compte...",
+    "btnSigningIn": "Connexion en cours...",
+    "toggleSignIn": "Vous avez déjà un compte ? Se connecter",
+    "toggleSignUp": "Vous n'avez pas de compte ? S'inscrire"
+  }
+}
