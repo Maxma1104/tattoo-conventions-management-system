@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from 'next-themes';
 import { useAuthStore } from '../store/useAuthStore';
-import { LogIn, AlertCircle, UserPlus, Globe } from 'lucide-react';
+import { LogIn, AlertCircle, UserPlus, Globe, Loader2, Sun, Moon } from 'lucide-react';
 
 export const Login = () => {
   const { t, i18n } = useTranslation();
@@ -15,6 +16,7 @@ export const Login = () => {
   
   const { login, signup, user, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   const changeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
     i18n.changeLanguage(e.target.value);
@@ -55,43 +57,87 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <Globe className="w-4 h-4 text-zinc-400" />
-        <select
-          value={i18n.language}
-          onChange={changeLanguage}
-          className="bg-zinc-800 border border-zinc-700 text-sm rounded-md px-2 py-1 text-zinc-300 focus:ring-red-500 focus:border-red-500"
-        >
-          <option value="en">English</option>
-          <option value="fr">Français</option>
-        </select>
+    <div className="min-h-screen bg-hermes-lightBg dark:bg-hermes-darkBg flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-colors duration-300 overflow-hidden">
+      
+      {/* Light Theme Background Image */}
+      <div 
+        className="fixed inset-0 z-0 dark:hidden pointer-events-none"
+        style={{
+          backgroundImage: "url('/login-bg.jpg')",
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover'
+        }}
+      >
+        <div className="absolute inset-0 bg-white/40" style={{ opacity: 0.42 }} />
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <h1 className="text-4xl font-bold text-red-500 tracking-wider">INKFLOW</h1>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+      {/* Dark Theme Background Image */}
+      <div
+        className="fixed inset-0 z-0 hidden dark:block pointer-events-none"
+        style={{
+          backgroundImage: "url('/login-bg-dark.jpg')",
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          filter: 'brightness(92%) contrast(112%)'
+        }}
+      >
+        <div className="absolute inset-0 bg-black" style={{ opacity: 0.35 }} />
+      </div>
+
+      {/* Theme and Language Switchers */}
+      <div className="absolute top-4 right-4 flex items-center gap-4 z-20">
+        <div className="flex items-center gap-2">
+          {theme === 'light' ? <Sun className="w-4 h-4 text-hermes-blue" /> : <Moon className="w-4 h-4 text-hermes-teal" />}
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            className="bg-transparent border border-hermes-blue/30 dark:border-hermes-teal/30 text-xs rounded-none px-2 py-1 text-hermes-blue dark:text-hermes-teal font-bold focus:ring-1 focus:ring-hermes-blue uppercase tracking-wider cursor-pointer"
+          >
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 border-l border-zinc-200 dark:border-hermes-teal/30 pl-4">
+          <Globe className="w-4 h-4 text-hermes-blue dark:text-hermes-teal" />
+          <select
+            value={i18n.language}
+            onChange={changeLanguage}
+            className="bg-transparent border border-hermes-blue/30 dark:border-hermes-teal/30 text-xs rounded-none px-2 py-1 text-hermes-blue dark:text-hermes-teal font-bold focus:ring-1 focus:ring-hermes-blue uppercase tracking-wider cursor-pointer"
+          >
+            <option value="en">EN</option>
+            <option value="fr">FR</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10">
+        <h1 className="font-serif text-5xl font-black text-hermes-blue dark:text-hermes-ivory leading-none tracking-tight flex flex-col items-center drop-shadow-md">
+          <span>INKFLOW</span>
+          <span>SYSTEM</span>
+        </h1>
+        <h2 className="mt-8 text-center text-2xl font-bold text-zinc-900 dark:text-hermes-ivory uppercase tracking-widest drop-shadow-sm">
           {isSignUp ? t('login.createAccount') : t('login.signIn')}
         </h2>
-        <p className="mt-2 text-center text-sm text-zinc-400">
+        <p className="mt-2 text-center text-sm text-zinc-700 dark:text-hermes-teal uppercase tracking-wider font-medium drop-shadow-sm">
           {t('login.subtitle')}
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-zinc-700">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div className="hermes-card backdrop-blur-md py-8 px-4 sm:px-10 border border-white/30 dark:border-hermes-teal/30 shadow-xl transition-colors duration-300 !bg-transparent !rounded-[40px]">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-900/50 border border-red-500 rounded-md p-3 flex items-start gap-3">
+              <div className="bg-red-50 border border-red-200 rounded-none p-3 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-200">{error}</p>
+                <p className="text-sm text-red-800">{error}</p>
               </div>
             )}
             
             {isSignUp && (
               <div>
-                <label className="block text-sm font-medium text-zinc-300">
+                <label className="block text-xs font-bold text-hermes-blue dark:text-hermes-ivory uppercase tracking-wider mb-1">
                   {t('login.fullName')}
                 </label>
                 <div className="mt-1">
@@ -100,7 +146,7 @@ export const Login = () => {
                     required={isSignUp}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-zinc-600 rounded-md shadow-sm placeholder-zinc-500 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm bg-zinc-900 text-white"
+                    className="appearance-none block w-full px-3 py-2 border border-white/40 dark:border-hermes-teal/30 rounded-none placeholder-zinc-500 dark:placeholder-hermes-teal/50 focus:outline-none focus:ring-1 focus:ring-hermes-blue dark:focus:ring-hermes-teal focus:border-hermes-blue dark:focus:border-hermes-teal sm:text-sm bg-white/40 dark:bg-hermes-darkBg/60 backdrop-blur-sm text-zinc-900 dark:text-hermes-ivory"
                     placeholder="John Doe"
                   />
                 </div>
@@ -108,7 +154,7 @@ export const Login = () => {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="email" className="block text-xs font-bold text-hermes-blue dark:text-hermes-ivory uppercase tracking-wider mb-1">
                 {t('login.email')}
               </label>
               <div className="mt-1">
@@ -120,14 +166,14 @@ export const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-zinc-600 rounded-md shadow-sm placeholder-zinc-500 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm bg-zinc-900 text-white"
+                  className="appearance-none block w-full px-3 py-2 border border-white/40 dark:border-hermes-teal/30 rounded-none placeholder-zinc-500 dark:placeholder-hermes-teal/50 focus:outline-none focus:ring-1 focus:ring-hermes-blue dark:focus:ring-hermes-teal focus:border-hermes-blue dark:focus:border-hermes-teal sm:text-sm bg-white/40 dark:bg-hermes-darkBg/60 backdrop-blur-sm text-zinc-900 dark:text-hermes-ivory"
                   placeholder="name@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300">
+              <label className="block text-xs font-bold text-hermes-blue dark:text-hermes-ivory uppercase tracking-wider mb-1">
                 {t('login.password')}
               </label>
               <div className="mt-1">
@@ -135,7 +181,7 @@ export const Login = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-zinc-600 rounded-md shadow-sm placeholder-zinc-500 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm bg-zinc-900 text-white"
+                  className="appearance-none block w-full px-3 py-2 border border-white/40 dark:border-hermes-teal/30 rounded-none placeholder-zinc-500 dark:placeholder-hermes-teal/50 focus:outline-none focus:ring-1 focus:ring-hermes-blue dark:focus:ring-hermes-teal focus:border-hermes-blue dark:focus:border-hermes-teal sm:text-sm bg-white/40 dark:bg-hermes-darkBg/60 backdrop-blur-sm text-zinc-900 dark:text-hermes-ivory"
                   placeholder={isSignUp ? t('login.passwordHint') : t('login.passwordHintLegacy')}
                 />
               </div>
@@ -143,40 +189,40 @@ export const Login = () => {
 
             {isSignUp && (
               <div>
-                <label className="block text-sm font-medium text-zinc-300">
+                <label className="block text-xs font-bold text-hermes-blue dark:text-hermes-ivory uppercase tracking-wider mb-2">
                   {t('login.role')}
                 </label>
                 <div className="mt-2 flex gap-4">
-                  <label className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
                       value="artist"
                       checked={role === 'artist'}
                       onChange={(e) => setRole(e.target.value as 'artist')}
-                      className="text-red-600 focus:ring-red-500 bg-zinc-900 border-zinc-600"
+                      className="text-hermes-blue focus:ring-hermes-blue bg-transparent border-zinc-300 rounded-none cursor-pointer"
                     />
-                    <span className="ml-2 text-zinc-300">{t('login.artist')}</span>
+                    <span className="ml-2 text-zinc-700 text-sm font-medium">{t('login.artist')}</span>
                   </label>
-                  <label className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
                       value="manager"
                       checked={role === 'manager'}
                       onChange={(e) => setRole(e.target.value as 'manager')}
-                      className="text-red-600 focus:ring-red-500 bg-zinc-900 border-zinc-600"
+                      className="text-hermes-blue focus:ring-hermes-blue bg-transparent border-zinc-300 rounded-none cursor-pointer"
                     />
-                    <span className="ml-2 text-zinc-300">{t('login.manager')}</span>
+                    <span className="ml-2 text-zinc-700 text-sm font-medium">{t('login.manager')}</span>
                   </label>
                 </div>
               </div>
             )}
 
             {!isSignUp && (
-              <div className="text-xs text-zinc-400 bg-zinc-900 p-3 rounded border border-zinc-700">
-                <p className="font-medium text-zinc-300 mb-1">{t('login.demoAccounts')}</p>
-                <ul className="list-disc pl-4 space-y-1">
-                  <li>Manager: manager@test.com</li>
-                  <li>Artist: artist1@test.com</li>
+              <div className="text-xs text-zinc-500 dark:text-hermes-teal bg-white/40 dark:bg-hermes-darkBg/60 backdrop-blur-sm p-3 border border-white/50 dark:border-hermes-teal/30">
+                <p className="font-bold text-zinc-700 dark:text-hermes-ivory mb-1 uppercase tracking-wider">{t('login.demoAccounts')}</p>
+                <ul className="list-disc pl-4 space-y-1 font-mono">
+                  <li>manager@test.com</li>
+                  <li>artist1@test.com</li>
                 </ul>
               </div>
             )}
@@ -185,33 +231,29 @@ export const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center py-3 px-4 hermes-btn-primary disabled:opacity-50"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     {isSignUp ? t('login.btnCreating') : t('login.btnSigningIn')}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    {isSignUp ? <UserPlus className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
                     {isSignUp ? t('login.btnSignUp') : t('login.btnSignIn')}
                   </span>
                 )}
               </button>
             </div>
             
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 border-t border-white/30 dark:border-hermes-teal/30 pt-4">
               <button
                 type="button"
                 onClick={() => {
                   setIsSignUp(!isSignUp);
                   setError('');
                 }}
-                className="text-sm text-red-400 hover:text-red-300 transition-colors"
+                className="text-xs font-bold text-hermes-blue dark:text-hermes-ivory hover:text-hermes-blueHover dark:hover:text-hermes-teal transition-colors uppercase tracking-wider"
               >
                 {isSignUp ? t('login.toggleSignIn') : t('login.toggleSignUp')}
               </button>

@@ -1,10 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { getAppointments, updateAppointmentStatus, getConventions, getConventionStatus } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
+import { supabase } from '../../lib/supabase';
 import { Calendar, MapPin, Clock, FileText, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const ArtistSchedule = () => {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +45,16 @@ export const ArtistSchedule = () => {
 
     if (user?.id) {
       fetchSchedule();
+
+      const channel = supabase.channel('sync-schedule')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchSchedule();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -69,18 +82,23 @@ export const ArtistSchedule = () => {
     return acc;
   }, {} as Record<string, any[]>);
 
-  const sortedDates = Object.keys(groupedAppointments).sort();
+  const sortedDates = Object.keys(groupedAppointments).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  // Sort appointments within each date from late to early
+  sortedDates.forEach(date => {
+    groupedAppointments[date].sort((a, b) => new Date(b.appointment_time).getTime() - new Date(a.appointment_time).getTime());
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-zinc-900">My Schedule</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory">{t("schedule.title")}</h1>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
+      <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg shadow-sm border border-zinc-200 dark:border-hermes-teal/30 overflow-hidden">
         {sortedDates.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500">
-            You have no upcoming appointments.
+          <div className="p-8 text-center text-zinc-500 dark:text-hermes-teal">
+            {t("schedule.noAppts")}
           </div>
         ) : (
           <div className="divide-y divide-zinc-100">
@@ -89,68 +107,71 @@ export const ArtistSchedule = () => {
               <div key={date} className="p-6 flex flex-col md:flex-row gap-6">
                 <div className="md:w-48 flex-shrink-0">
                   <div className="sticky top-6">
-                    <h3 className="text-xl font-bold text-zinc-900">{format(new Date(date), 'EEEE')}</h3>
-                    <p className="text-zinc-500">{format(new Date(date), 'MMMM d, yyyy')}</p>
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-hermes-ivory">{format(new Date(date), 'EEEE')}</h3>
+                    <p className="text-zinc-500 dark:text-hermes-teal">{format(new Date(date), 'MMMM d, yyyy')}</p>
                   </div>
                 </div>
                 <div className="flex-1 space-y-4">
                   {groupedAppointments[date].map((appt) => (
-                    <div key={appt.id} className="border border-zinc-200 rounded-lg p-4 hover:border-red-200 transition-colors bg-zinc-50">
+                    <div key={appt.id} className="border border-zinc-200 dark:border-hermes-teal/30 rounded-none p-4 hover:border-red-200 transition-colors bg-zinc-50 dark:bg-hermes-darkBg">
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h4 className="font-bold text-lg text-zinc-900">{appt.customers?.name || 'Unknown Client'}</h4>
-                          <p className="text-red-600 font-medium">{appt.tattoo_type}</p>
+                          <h4 className="font-bold text-lg text-zinc-900 dark:text-hermes-ivory">{appt.customers?.name || t('common.unknownClient')}</h4>
+                          <p className="text-hermes-blue dark:text-hermes-teal font-medium">{appt.tattoo_type}</p>
                         </div>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                          ${appt.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                            appt.status === 'pending' ? 'bg-orange-100 text-orange-800' : 
-                            'bg-zinc-200 text-zinc-800'}`}>
+                          ${appt.status === 'confirmed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
+                            appt.status === 'completed' ? 'bg-zinc-200 text-zinc-800 dark:bg-hermes-teal/10 dark:text-hermes-teal' :
+                            appt.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                            appt.status === 'pending' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' : 
+                            'bg-zinc-200 text-zinc-800 dark:bg-hermes-teal/20 dark:text-hermes-teal'}`}>
                           {appt.status.replace('_', ' ')}
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-zinc-600">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-zinc-600 dark:text-hermes-ivoryDim">
                         <div className="space-y-2">
                           <p className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-zinc-400" />
+                            <Clock className="w-4 h-4 text-zinc-400 dark:text-hermes-teal" />
                             {format(new Date(appt.appointment_time), 'h:mm a')} ({appt.duration_hours} hours)
                           </p>
                           <p className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-zinc-400" />
-                            {appt.conventions?.name || 'Studio'}
+                            <MapPin className="w-4 h-4 text-zinc-400 dark:text-hermes-teal" />
+                            {appt.conventions?.name || t('common.studio')}
                           </p>
                         </div>
                         <div className="space-y-2">
                           {appt.notes && (
                             <p className="flex items-start gap-2">
-                              <FileText className="w-4 h-4 text-zinc-400 mt-0.5" />
+                              <FileText className="w-4 h-4 text-zinc-400 dark:text-hermes-teal mt-0.5" />
                               <span className="flex-1 line-clamp-2">{appt.notes}</span>
                             </p>
                           )}
                         </div>
                       </div>
                       
-                      <div className="mt-4 pt-4 border-t border-zinc-200 flex justify-between items-center gap-3">
+                      <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-hermes-teal/30 flex justify-between items-center gap-3">
                         <select
                           value={appt.status}
                           onChange={(e) => handleUpdateStatus(appt.id, e.target.value)}
-                          className={`text-xs font-medium rounded-full px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer
-                            ${appt.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                              appt.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
-                              appt.status === 'pending' ? 'bg-orange-100 text-orange-800' : 
-                              'bg-zinc-200 text-zinc-800'}`}
+                          className={`text-xs font-medium rounded-full px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-hermes-blue dark:focus:ring-hermes-teal cursor-pointer
+                            ${appt.status === 'completed' ? 'bg-zinc-200 text-zinc-800 dark:bg-hermes-teal/10 dark:text-hermes-teal' : 
+                              appt.status === 'confirmed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                              appt.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 
+                              appt.status === 'pending' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' : 
+                              'bg-zinc-200 text-zinc-800 dark:bg-hermes-teal/20 dark:text-hermes-teal'}`}
                         >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="completed">Completed</option>
+                          <option value="pending">{t("common.pending")}</option>
+                          <option value="confirmed">{t("common.confirmed")}</option>
+                          <option value="in_progress">{t("common.in_progress")}</option>
+                          <option value="completed">{t("common.completed")}</option>
                         </select>
 
                         <button 
                           onClick={() => setSelectedAppt(appt)}
-                          className="px-3 py-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+                          className="px-3 py-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-hermes-ivory transition-colors"
                         >
-                          View Reference
+                          {t("schedule.viewRef")}
                         </button>
                       </div>
                     </div>
@@ -164,8 +185,8 @@ export const ArtistSchedule = () => {
 
       {/* View Reference Modal */}
       {selectedAppt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-8 flex-shrink-0 flex flex-col">
             <div className="p-4 border-b border-zinc-200 flex justify-between items-center sticky top-0 bg-white rounded-t-xl z-10">
               <div>
                 <h2 className="text-xl font-bold text-zinc-900">{selectedAppt.customers?.name}'s Tattoo Info</h2>
@@ -179,7 +200,7 @@ export const ArtistSchedule = () => {
             <div className="p-6 overflow-y-auto">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 uppercase tracking-wider">Description</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 uppercase tracking-wider">{t("schedule.description")}</h3>
                   <div className="bg-zinc-50 p-4 rounded-lg border border-zinc-200">
                     <p className="text-zinc-700 whitespace-pre-wrap">
                       {selectedAppt.customers?.tattoo_description || selectedAppt.notes || 'No description provided.'}
@@ -188,7 +209,7 @@ export const ArtistSchedule = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 uppercase tracking-wider">Reference Image</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 mb-2 uppercase tracking-wider">{t("schedule.refImage")}</h3>
                   {selectedAppt.customers?.tattoo_reference ? (
                     selectedAppt.customers.tattoo_reference.match(/\.(jpeg|jpg|gif|png|webp)$/i) || selectedAppt.customers.tattoo_reference.includes('supabase.co/storage') ? (
                       <div className="rounded-lg overflow-hidden border border-zinc-200">
@@ -222,7 +243,7 @@ export const ArtistSchedule = () => {
                 {/* Contact Info (optional) */}
                 {(selectedAppt.customers?.phone || selectedAppt.customers?.email) && (
                   <div>
-                    <h3 className="text-sm font-semibold text-zinc-900 mb-2 uppercase tracking-wider">Contact Info</h3>
+                    <h3 className="text-sm font-semibold text-zinc-900 mb-2 uppercase tracking-wider">{t("schedule.contactInfo")}</h3>
                     <div className="bg-zinc-50 p-4 rounded-lg border border-zinc-200 space-y-1 text-sm text-zinc-700">
                       {selectedAppt.customers?.phone && <p>Phone: {selectedAppt.customers.phone}</p>}
                       {selectedAppt.customers?.email && <p>Email: {selectedAppt.customers.email}</p>}

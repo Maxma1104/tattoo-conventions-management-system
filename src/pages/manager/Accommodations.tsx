@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../../lib/supabase';
 import React, { useState, useEffect } from 'react';
 import { getAllAccommodations, getConventions, getArtists, createAccommodation, deleteAccommodation } from '../../lib/api';
 import { parseAccommodationWithAI, parseAccommodationTextWithAI } from '../../lib/ai';
@@ -5,6 +7,7 @@ import { Hotel, Plus, Trash2, MapPin, Calendar, Sparkles, Upload, Loader2 } from
 import { format } from 'date-fns';
 
 export const ManagerAccommodations = () => {
+  const { t } = useTranslation();
   const [accommodations, setAccommodations] = useState<any[]>([]);
   const [conventions, setConventions] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
@@ -45,7 +48,17 @@ export const ManagerAccommodations = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+
+      const channel = supabase.channel('sync-accommodations')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, []);
 
   const handleAiTextAutofill = async () => {
     if (!aiInput.trim()) return;
@@ -166,21 +179,21 @@ export const ManagerAccommodations = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-zinc-900">Accommodations Management</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory">Accommodations Management</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-none text-sm font-medium flex items-center gap-2 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Accommodation
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
+      <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-zinc-50 text-zinc-500 text-xs uppercase tracking-wider border-b border-zinc-200">
+              <tr className="bg-zinc-50 dark:bg-hermes-darkBg text-zinc-500 dark:text-hermes-teal text-xs uppercase tracking-wider border-b border-zinc-200 dark:border-hermes-teal/30">
                 <th className="px-6 py-4 font-medium">Artist & Convention</th>
                 <th className="px-6 py-4 font-medium">Hotel Info</th>
                 <th className="px-6 py-4 font-medium">Dates & Room</th>
@@ -191,27 +204,27 @@ export const ManagerAccommodations = () => {
             <tbody className="divide-y divide-zinc-200">
               {accommodations.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-zinc-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-zinc-500 dark:text-hermes-teal">
                     No accommodations found
                   </td>
                 </tr>
               ) : (
                 accommodations.map((acc) => (
-                  <tr key={acc.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={acc.id} className="hover:bg-zinc-50 dark:bg-hermes-darkBg transition-colors">
                     <td className="px-6 py-4">
-                      <p className="font-bold text-zinc-900">{acc.users?.name || 'Unknown Artist'}</p>
+                      <p className="font-bold text-zinc-900 dark:text-hermes-ivory">{acc.users?.name || 'Unknown Artist'}</p>
                       <p className="text-xs text-blue-600 font-medium mt-1">{acc.conventions?.name}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-zinc-900 text-sm flex items-center gap-1">
+                      <p className="font-medium text-zinc-900 dark:text-hermes-ivory text-sm flex items-center gap-1">
                         <Hotel className="w-3 h-3" /> {acc.hotel_name}
                       </p>
-                      <p className="text-xs text-zinc-500 mt-1 flex items-start gap-1">
+                      <p className="text-xs text-zinc-500 dark:text-hermes-teal mt-1 flex items-start gap-1">
                         <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
                         <span className="line-clamp-2">{acc.hotel_address}</span>
                       </p>
                     </td>
-                    <td className="px-6 py-4 text-sm text-zinc-700">
+                    <td className="px-6 py-4 text-sm text-zinc-700 dark:text-hermes-ivoryDim">
                       <p className="flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-zinc-400" />
                         {acc.check_in_date ? format(new Date(acc.check_in_date), 'MMM d') : '-'} to {acc.check_out_date ? format(new Date(acc.check_out_date), 'MMM d') : '-'}
@@ -223,7 +236,7 @@ export const ManagerAccommodations = () => {
                         <p className="text-sm font-medium text-red-600">Code: {acc.access_code}</p>
                       )}
                       {acc.contact_phone && (
-                        <p className="text-xs text-zinc-500 mt-1">{acc.contact_phone}</p>
+                        <p className="text-xs text-zinc-500 dark:text-hermes-teal mt-1">{acc.contact_phone}</p>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -242,17 +255,17 @@ export const ManagerAccommodations = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-zinc-200">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none shadow-xl w-full max-w-2xl my-8 flex-shrink-0">
+            <div className="p-6 border-b border-zinc-200 dark:border-hermes-teal/30">
               <h2 className="text-xl font-bold">Assign Accommodation</h2>
             </div>
             
             {/* AI Autofill Section */}
             <div className="p-6 pb-0">
-              <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
-                <label className="block text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-500" />
+              <div className="bg-zinc-50 dark:bg-hermes-darkBg border border-zinc-200 dark:border-hermes-teal/30 rounded-none p-5">
+                <label className="block text-sm font-semibold text-purple-700 dark:text-hermes-ivory mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
                   AI Magic Extract (Text or Image)
                 </label>
                 <div className="flex flex-col gap-4">
@@ -262,13 +275,13 @@ export const ManagerAccommodations = () => {
                       value={aiInput}
                       onChange={(e) => setAiInput(e.target.value)}
                       placeholder="Paste hotel booking text or details here..."
-                      className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none bg-white"
+                      className="w-full px-3 py-2 border border-zinc-300 dark:border-hermes-teal/30 rounded-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg"
                     />
                     <button
                       type="button"
                       onClick={handleAiTextAutofill}
                       disabled={isAiLoading || !aiInput.trim()}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center min-w-[80px]"
+                      className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-3 py-2 rounded-none text-sm font-medium transition-colors flex items-center justify-center min-w-[80px]"
                     >
                       {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Autofill'}
                     </button>
@@ -280,7 +293,7 @@ export const ManagerAccommodations = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                    <label className="cursor-pointer bg-white border border-blue-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+                    <label className="cursor-pointer hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg border border-blue-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 px-4 py-2.5 rounded-none text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
                       {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       {isAiLoading ? 'Analyzing Screenshot...' : 'Upload Screenshot'}
                       <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isAiLoading} />
@@ -296,17 +309,17 @@ export const ManagerAccommodations = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Convention *</label>
-                  <select required value={formData.convention_id} onChange={e => setFormData({...formData, convention_id: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Convention *</label>
+                  <select required value={formData.convention_id} onChange={e => setFormData({...formData, convention_id: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500">
                     <option value="">Select Convention...</option>
                     {conventions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Artists *</label>
-                  <div className="w-full px-3 py-2 border rounded-lg max-h-[104px] overflow-y-auto space-y-2 bg-white">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Artists *</label>
+                  <div className="w-full px-3 py-2 border rounded-none max-h-[104px] overflow-y-auto space-y-2 hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg">
                     {artists.map(a => (
-                      <label key={a.id} className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50 rounded p-1">
+                      <label key={a.id} className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50 dark:bg-hermes-darkBg rounded p-1">
                         <input 
                           type="checkbox" 
                           checked={formData.artist_ids.includes(a.id)}
@@ -318,7 +331,7 @@ export const ManagerAccommodations = () => {
                           }}
                           className="rounded border-zinc-300 text-red-600 focus:ring-red-500"
                         />
-                        <span className="text-sm text-zinc-700">{a.name}</span>
+                        <span className="text-sm text-zinc-700 dark:text-hermes-ivoryDim">{a.name}</span>
                       </label>
                     ))}
                   </div>
@@ -326,49 +339,49 @@ export const ManagerAccommodations = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1">Hotel Name *</label>
-                <input required type="text" value={formData.hotel_name} onChange={e => setFormData({...formData, hotel_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500" />
+                <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Hotel Name *</label>
+                <input required type="text" value={formData.hotel_name} onChange={e => setFormData({...formData, hotel_name: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1">Hotel Address *</label>
-                <textarea required rows={2} value={formData.hotel_address} onChange={e => setFormData({...formData, hotel_address: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500"></textarea>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Hotel Address *</label>
+                <textarea required rows={2} value={formData.hotel_address} onChange={e => setFormData({...formData, hotel_address: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500"></textarea>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Check In</label>
-                  <input type="date" value={formData.check_in_date} onChange={e => setFormData({...formData, check_in_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500" />
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">{t("accommodations.checkIn")}</label>
+                  <input type="date" value={formData.check_in_date} onChange={e => setFormData({...formData, check_in_date: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Check Out</label>
-                  <input type="date" value={formData.check_out_date} onChange={e => setFormData({...formData, check_out_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500" />
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">{t("accommodations.checkOut")}</label>
+                  <input type="date" value={formData.check_out_date} onChange={e => setFormData({...formData, check_out_date: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Room Number</label>
-                  <input type="text" value={formData.room_number} onChange={e => setFormData({...formData, room_number: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500" />
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Room Number</label>
+                  <input type="text" value={formData.room_number} onChange={e => setFormData({...formData, room_number: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Contact Phone</label>
-                  <input type="tel" value={formData.contact_phone} onChange={e => setFormData({...formData, contact_phone: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500" />
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Contact Phone</label>
+                  <input type="tel" value={formData.contact_phone} onChange={e => setFormData({...formData, contact_phone: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Access Code / Password</label>
-                  <input type="text" value={formData.access_code} onChange={e => setFormData({...formData, access_code: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500" />
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Access Code / Password</label>
+                  <input type="text" value={formData.access_code} onChange={e => setFormData({...formData, access_code: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1">Additional Notes</label>
-                <textarea rows={2} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-red-500"></textarea>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1">Additional Notes</label>
+                <textarea rows={2} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full px-3 py-2 border rounded-none focus:ring-red-500"></textarea>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-zinc-600 hover:bg-zinc-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium">Save Accommodation</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-zinc-600 dark:text-hermes-teal hover:bg-zinc-100 dark:bg-hermes-teal/10 rounded-none">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-none font-medium">Save Accommodation</button>
               </div>
             </form>
           </div>

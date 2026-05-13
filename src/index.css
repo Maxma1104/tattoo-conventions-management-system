@@ -2,6 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-hermes-lightBg text-zinc-800 antialiased font-sans relative transition-colors duration-300;
+  }
+  
+  /* Dark mode global overrides */
+  html.dark body {
+    @apply bg-hermes-darkBg text-hermes-ivory;
+  }
+  
+  /* Adding the subtle film grain texture globally */
+  body::before {
+    content: "";
+    @apply absolute inset-0 opacity-40 pointer-events-none z-[-1] mix-blend-multiply;
+    background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+    background-repeat: repeat;
+  }
+  
+  html.dark body::before {
+    @apply opacity-30 mix-blend-overlay;
+  }
+}
+
+@layer utilities {
+  .hermes-grid-light {
+    background-image: 
+      linear-gradient(to right, rgba(31, 78, 219, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(31, 78, 219, 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  
+  html.dark .hermes-grid-light {
+    background-image: 
+      linear-gradient(to right, rgba(27, 124, 122, 0.15) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27, 124, 122, 0.15) 1px, transparent 1px);
+  }
+  
+  .hermes-btn-primary {
+    @apply bg-hermes-blue text-white hover:bg-hermes-blueHover transition-colors shadow-sm font-bold uppercase tracking-wider text-sm rounded-none border border-transparent;
+  }
+  
+  html.dark .hermes-btn-primary {
+    @apply bg-hermes-teal text-hermes-ivory hover:bg-[#156160] border-hermes-teal;
+  }
+  
+  .hermes-card {
+    @apply bg-white/20 backdrop-blur-md border border-hermes-blue/20 rounded-none shadow-sm relative overflow-hidden transition-colors duration-300;
+  }
+  
+  html.dark .hermes-card {
+    @apply bg-hermes-darkBg/30 border-hermes-teal/30 backdrop-blur-md;
+  }
+  
+  /* Adding thin corner accents to cards */
+  .hermes-card::after {
+    content: "";
+    @apply absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-hermes-blue opacity-50;
+  }
+  .hermes-card::before {
+    content: "";
+    @apply absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-hermes-blue opacity-50;
+  }
+  
+  html.dark .hermes-card::after,
+  html.dark .hermes-card::before {
+    @apply border-hermes-teal opacity-70;
+  }
+  
+  /* Text color utilities for dark mode switching */
+  .text-hermes-primary {
+    @apply text-hermes-blue dark:text-hermes-ivory;
+  }
+  
+  .text-hermes-secondary {
+    @apply text-zinc-500 dark:text-hermes-teal;
+  }
+
+  .border-hermes-primary {
+    @apply border-hermes-blue/20 dark:border-hermes-teal/30;
+  }
+}
+
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.5;

@@ -124,6 +124,7 @@ export const getOrders = async () => {
       *,
       appointments (
         id,
+        status,
         tattoo_type,
         convention_id,
         appointment_time,

@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../../lib/supabase';
 import React, { useState, useEffect } from 'react';
 import { getConventions, getOrders, updateConvention, getConventionStatus } from '../../lib/api';
 import { DollarSign, TrendingUp, Save, Users, MapPin, Building, Car, Coffee, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const ManagerFinances = () => {
+  const { t } = useTranslation();
   const [conventions, setConventions] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedConvId, setSelectedConvId] = useState<string>('');
@@ -46,7 +49,17 @@ export const ManagerFinances = () => {
       }
     };
     fetchData();
-  }, []);
+
+      const channel = supabase.channel('sync-finances')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, []);
 
   useEffect(() => {
     const conv = conventions.find(c => c.id === selectedConvId);
@@ -117,7 +130,7 @@ export const ManagerFinances = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-zinc-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-red-600" />
           Financial Dashboard
         </h1>
@@ -125,7 +138,7 @@ export const ManagerFinances = () => {
           <select 
             value={selectedConvId} 
             onChange={(e) => setSelectedConvId(e.target.value)}
-            className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-red-500 font-medium"
+            className="w-full px-3 py-2 border border-zinc-300 rounded-none focus:ring-2 focus:ring-red-500 font-medium"
           >
             {conventions.length === 0 && <option value="">No Conventions Available</option>}
             {conventions.map(c => (
@@ -138,26 +151,26 @@ export const ManagerFinances = () => {
       </div>
 
       {!selectedConvId ? (
-        <div className="bg-white rounded-xl p-8 text-center text-zinc-500 border border-zinc-200">
+        <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-8 text-center text-zinc-500 dark:text-hermes-teal border border-zinc-200 dark:border-hermes-teal/30">
           Please select or create a convention to view finances.
         </div>
       ) : (
         <>
           {/* Top KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-6 border border-zinc-200 shadow-sm flex flex-col justify-center">
-              <p className="text-sm font-medium text-zinc-500 mb-1">Total Revenue</p>
-              <p className="text-3xl font-bold text-zinc-900">${totalRevenue.toFixed(2)}</p>
+            <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-6 border border-zinc-200 dark:border-hermes-teal/30 shadow-sm flex flex-col justify-center">
+              <p className="text-sm font-medium text-zinc-500 dark:text-hermes-teal mb-1">{t("dashboard.totalRevenue")}</p>
+              <p className="text-3xl font-bold text-zinc-900 dark:text-hermes-ivory">${totalRevenue.toFixed(2)}</p>
             </div>
-            <div className="bg-white rounded-xl p-6 border border-zinc-200 shadow-sm flex flex-col justify-center">
-              <p className="text-sm font-medium text-zinc-500 mb-1">Operating Costs</p>
+            <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-6 border border-zinc-200 dark:border-hermes-teal/30 shadow-sm flex flex-col justify-center">
+              <p className="text-sm font-medium text-zinc-500 dark:text-hermes-teal mb-1">Operating Costs</p>
               <p className="text-3xl font-bold text-orange-600">${fixedCosts.toFixed(2)}</p>
             </div>
-            <div className="bg-white rounded-xl p-6 border border-zinc-200 shadow-sm flex flex-col justify-center">
-              <p className="text-sm font-medium text-zinc-500 mb-1">Artist Commissions (40%)</p>
+            <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-6 border border-zinc-200 dark:border-hermes-teal/30 shadow-sm flex flex-col justify-center">
+              <p className="text-sm font-medium text-zinc-500 dark:text-hermes-teal mb-1">Artist Commissions (40%)</p>
               <p className="text-3xl font-bold text-blue-600">${totalArtistCommission.toFixed(2)}</p>
             </div>
-            <div className={`rounded-xl p-6 border shadow-sm flex flex-col justify-center ${netProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+            <div className={`rounded-none p-6 border shadow-sm flex flex-col justify-center ${netProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               <p className={`text-sm font-medium mb-1 ${netProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>Net Profit</p>
               <p className={`text-3xl font-bold ${netProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                 ${netProfit.toFixed(2)}
@@ -167,9 +180,9 @@ export const ManagerFinances = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Operating Costs Form */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-zinc-100 bg-zinc-50">
-                <h2 className="text-lg font-bold text-zinc-800 flex items-center gap-2">
+            <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none border border-zinc-200 dark:border-hermes-teal/30 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-zinc-100 dark:border-hermes-teal/30 bg-zinc-50 dark:bg-hermes-darkBg">
+                <h2 className="text-lg font-bold text-zinc-800 dark:text-hermes-ivory flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-orange-500" />
                   Operating Costs Input
                 </h2>
@@ -177,64 +190,64 @@ export const ManagerFinances = () => {
               <form onSubmit={handleSaveCosts} className="p-5 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1 flex items-center gap-1">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1 flex items-center gap-1">
                       <MapPin className="w-4 h-4 text-zinc-400" /> Booth Fee
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-hermes-teal">$</span>
                       <input 
                         type="number" step="0.01" min="0" required
                         value={costs.booth_fee} onChange={e => setCosts({...costs, booth_fee: e.target.value})}
-                        className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-red-500"
+                        className="w-full pl-7 pr-3 py-2 border rounded-none focus:ring-red-500"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1 flex items-center gap-1">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1 flex items-center gap-1">
                       <Building className="w-4 h-4 text-zinc-400" /> Accommodation
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-hermes-teal">$</span>
                       <input 
                         type="number" step="0.01" min="0" required
                         value={costs.accommodation_fee} onChange={e => setCosts({...costs, accommodation_fee: e.target.value})}
-                        className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-red-500"
+                        className="w-full pl-7 pr-3 py-2 border rounded-none focus:ring-red-500"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1 flex items-center gap-1">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1 flex items-center gap-1">
                       <Car className="w-4 h-4 text-zinc-400" /> Travel / Flights
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-hermes-teal">$</span>
                       <input 
                         type="number" step="0.01" min="0" required
                         value={costs.travel_fee} onChange={e => setCosts({...costs, travel_fee: e.target.value})}
-                        className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-red-500"
+                        className="w-full pl-7 pr-3 py-2 border rounded-none focus:ring-red-500"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1 flex items-center gap-1">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim mb-1 flex items-center gap-1">
                       <Coffee className="w-4 h-4 text-zinc-400" /> Food & Beverage
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-hermes-teal">$</span>
                       <input 
                         type="number" step="0.01" min="0" required
                         value={costs.food_fee} onChange={e => setCosts({...costs, food_fee: e.target.value})}
-                        className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-red-500"
+                        className="w-full pl-7 pr-3 py-2 border rounded-none focus:ring-red-500"
                       />
                     </div>
                   </div>
                 </div>
                 
-                <div className="pt-4 border-t border-zinc-100 flex justify-end">
+                <div className="pt-4 border-t border-zinc-100 dark:border-hermes-teal/30 flex justify-end">
                   <button 
                     type="submit" 
                     disabled={isSaving}
-                    className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+                    className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-5 py-2 rounded-none font-medium flex items-center gap-2 transition-colors"
                   >
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     Save Costs
@@ -244,9 +257,9 @@ export const ManagerFinances = () => {
             </div>
 
             {/* Artist Breakdown */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
-              <div className="p-5 border-b border-zinc-100 bg-zinc-50">
-                <h2 className="text-lg font-bold text-zinc-800 flex items-center gap-2">
+            <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none border border-zinc-200 dark:border-hermes-teal/30 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-5 border-b border-zinc-100 dark:border-hermes-teal/30 bg-zinc-50 dark:bg-hermes-darkBg">
+                <h2 className="text-lg font-bold text-zinc-800 dark:text-hermes-ivory flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-500" />
                   Artist Commissions Breakdown
                 </h2>
@@ -259,13 +272,13 @@ export const ManagerFinances = () => {
                 ) : (
                   <div className="space-y-4">
                     {Object.values(artistEarnings).map((artist, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 rounded-lg border border-zinc-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
+                      <div key={idx} className="flex justify-between items-center p-3 rounded-none border border-zinc-100 dark:border-hermes-teal/30 hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
                         <div>
-                          <p className="font-bold text-zinc-800">{artist.name}</p>
-                          <p className="text-xs text-zinc-500">Generated: ${artist.total.toFixed(2)}</p>
+                          <p className="font-bold text-zinc-800 dark:text-hermes-ivory">{artist.name}</p>
+                          <p className="text-xs text-zinc-500 dark:text-hermes-teal">Generated: ${artist.total.toFixed(2)}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-zinc-500">40% Cut</p>
+                          <p className="text-sm text-zinc-500 dark:text-hermes-teal">40% Cut</p>
                           <p className="font-bold text-blue-600">${artist.cut.toFixed(2)}</p>
                         </div>
                       </div>

@@ -21,27 +21,32 @@ graph TD
 
 ## 2. 技术描述
 
-- **前端**: React@18 + tailwindcss@3 + vite
-- **初始化工具**: vite-init
-- **后端**: Supabase (包含认证、PostgreSQL数据库、文件存储)
-- **状态管理**: React Context + useReducer
-- **路由**: React Router v6
-- **UI组件库**: HeadlessUI + 自定义组件
+* **前端**: React\@18 + tailwindcss\@3 + vite
+
+* **初始化工具**: vite-init
+
+* **后端**: Supabase (包含认证、PostgreSQL数据库、文件存储)
+
+* **状态管理**: React Context + useReducer
+
+* **路由**: React Router v6
+
+* **UI组件库**: HeadlessUI + 自定义组件
 
 ## 3. 路由定义
 
-| 路由 | 用途 |
-|------|------|
-| /login | 登录页面，用户身份验证 |
-| /manager/dashboard | 经理人看板，总览所有数据 |
-| /manager/conventions | 展会管理页面，创建编辑展会 |
-| /manager/appointments | 客户预约管理页面 |
-| /manager/orders | 订单管理中心 |
-| /artist/dashboard | 纹身师工作台首页 |
-| /artist/conventions | 展会报名页面 |
-| /artist/schedule | 我的行程页面 |
-| /artist/convention/:id | 展会详情页面 |
-| /profile | 用户个人信息页面 |
+| 路由                     | 用途            |
+| ---------------------- | ------------- |
+| /login                 | 登录页面，用户身份验证   |
+| /manager/dashboard     | 经理人看板，总览所有数据  |
+| /manager/conventions   | 展会管理页面，创建编辑展会 |
+| /manager/appointments  | 客户预约管理页面      |
+| /manager/orders        | 订单管理中心        |
+| /artist/dashboard      | 纹身师工作台首页      |
+| /artist/conventions    | 展会报名页面        |
+| /artist/schedule       | 我的行程页面        |
+| /artist/convention/:id | 展会详情页面        |
+| /profile               | 用户个人信息页面      |
 
 ## 4. 数据模型
 
@@ -337,16 +342,28 @@ graph TD
 ## 6. 核心组件设计
 
 ### 6.1 通用组件
-- `Layout`: 主布局组件，包含导航栏和侧边栏
-- `PrivateRoute`: 路由保护组件，检查用户认证状态
-- `RoleRoute`: 角色路由组件，根据用户角色渲染不同内容
-- `LoadingSpinner`: 加载状态组件
-- `ErrorBoundary`: 错误边界组件
+
+* `Layout`: 主布局组件，包含导航栏和侧边栏
+
+* `PrivateRoute`: 路由保护组件，检查用户认证状态
+
+* `RoleRoute`: 角色路由组件，根据用户角色渲染不同内容
+
+* `LoadingSpinner`: 加载状态组件
+
+* `ErrorBoundary`: 错误边界组件
 
 ### 6.2 业务组件
-- `ConventionCard`: 展会信息卡片
-- `AppointmentKanban`: 预约看板组件
-- `OrderList`: 订单列表组件
-- `PaymentTracker`: 支付状态跟踪组件
-- `BoothAssignment`: 展位分配组件
-- `AccommodationInfo`: 住宿信息展示组件
+
+* `ConventionCard`: 展会信息卡片
+
+* `AppointmentKanban`: 预约看板组件
+
+* `OrderList`: 订单列表组件
+
+* `PaymentTracker`: 支付状态跟踪组件
+
+* `BoothAssignment`: 展位分配组件
+
+* `AccommodationInfo`: 住宿信息展示组件
+

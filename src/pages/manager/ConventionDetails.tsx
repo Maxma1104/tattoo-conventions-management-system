@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../../lib/supabase';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getConventionWithOrders, getConventionAssignments, getArtists, applyForConvention, cancelConventionApplication } from '../../lib/api';
@@ -5,6 +7,7 @@ import { Calendar, MapPin, DollarSign, ArrowLeft, Users, Package, UserPlus, Tras
 import { format } from 'date-fns';
 
 export const ManagerConventionDetails = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [convention, setConvention] = useState<any>(null);
@@ -16,7 +19,17 @@ export const ManagerConventionDetails = () => {
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+
+      const channel = supabase.channel('sync-conventiondetails')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [id]);
 
   const fetchData = async () => {
     if (!id) return;
@@ -66,7 +79,7 @@ export const ManagerConventionDetails = () => {
   }
 
   if (!convention) {
-    return <div className="p-8 text-center text-zinc-500">Convention not found.</div>;
+    return <div className="p-8 text-center text-zinc-500 dark:text-hermes-teal">Convention not found.</div>;
   }
 
   const paidOrders = orders.filter(o => o.status === 'paid');
@@ -89,14 +102,14 @@ export const ManagerConventionDetails = () => {
     <div className="space-y-6">
       <button 
         onClick={() => navigate('/manager/conventions')}
-        className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-colors text-sm font-medium"
+        className="flex items-center gap-2 text-zinc-500 dark:text-hermes-teal hover:text-zinc-900 dark:text-hermes-ivory transition-colors text-sm font-medium"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Conventions
       </button>
 
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-zinc-200">
-        <h1 className="text-3xl font-bold text-zinc-900">{convention.name}</h1>
-        <div className="flex flex-wrap gap-6 mt-4 text-zinc-600">
+      <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg p-8 rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30">
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-hermes-ivory">{convention.name}</h1>
+        <div className="flex flex-wrap gap-6 mt-4 text-zinc-600 dark:text-hermes-teal">
           <p className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-zinc-400" />
             {format(new Date(convention.start_date), 'MMM d, yyyy')} - {format(new Date(convention.end_date), 'MMM d, yyyy')}
@@ -109,16 +122,16 @@ export const ManagerConventionDetails = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
-          <p className="text-sm text-zinc-500 font-medium flex items-center gap-2 mb-2"><Package className="w-4 h-4" /> Total Orders</p>
-          <p className="text-2xl font-bold text-zinc-900">{orders.length}</p>
+        <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg p-6 rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30">
+          <p className="text-sm text-zinc-500 dark:text-hermes-teal font-medium flex items-center gap-2 mb-2"><Package className="w-4 h-4" /> Total Orders</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory">{orders.length}</p>
           <p className="text-xs text-zinc-400 mt-1">{paidOrders.length} completed</p>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
-          <p className="text-sm text-zinc-500 font-medium flex items-center gap-2 mb-2"><DollarSign className="w-4 h-4" /> Total Revenue</p>
-          <p className="text-2xl font-bold text-zinc-900">${totalRevenue.toFixed(2)}</p>
+        <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg p-6 rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30">
+          <p className="text-sm text-zinc-500 dark:text-hermes-teal font-medium flex items-center gap-2 mb-2"><DollarSign className="w-4 h-4" /> Total Revenue</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory">${totalRevenue.toFixed(2)}</p>
         </div>
-        <div className={`p-6 rounded-xl shadow-sm border ${netProfit >= 0 ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
+        <div className={`p-6 rounded-none shadow-sm border ${netProfit >= 0 ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
           <p className={`text-sm font-medium flex items-center gap-2 mb-2 ${netProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
             <DollarSign className="w-4 h-4" /> Net Profit
           </p>
@@ -129,17 +142,17 @@ export const ManagerConventionDetails = () => {
       </div>
 
       {/* Artists Assigned Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
-        <div className="p-4 border-b border-zinc-200 bg-zinc-50 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-zinc-500" />
+      <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30 overflow-hidden">
+        <div className="p-4 border-b border-zinc-200 dark:border-hermes-teal/30 bg-zinc-50 dark:bg-hermes-darkBg flex justify-between items-center">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-hermes-ivory flex items-center gap-2">
+            <Users className="w-5 h-5 text-zinc-500 dark:text-hermes-teal" />
             Participating Artists
           </h2>
           <div className="flex gap-2">
             <select
               value={selectedArtistToAdd}
               onChange={(e) => setSelectedArtistToAdd(e.target.value)}
-              className="text-sm border border-zinc-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="text-sm border border-zinc-300 rounded-none px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="">Select Artist to Add...</option>
               {allArtists.map(artist => (
@@ -149,7 +162,7 @@ export const ManagerConventionDetails = () => {
             <button
               onClick={handleAddArtist}
               disabled={!selectedArtistToAdd}
-              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-none text-sm font-medium transition-colors flex items-center gap-1"
             >
               <UserPlus className="w-4 h-4" /> Add
             </button>
@@ -157,12 +170,12 @@ export const ManagerConventionDetails = () => {
         </div>
         <div className="p-4">
           {assignments.length === 0 ? (
-            <p className="text-center text-zinc-500 py-4">No artists are currently assigned to this convention.</p>
+            <p className="text-center text-zinc-500 dark:text-hermes-teal py-4">No artists are currently assigned to this convention.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {assignments.map((assignment) => (
-                <div key={assignment.id} className="flex items-center justify-between p-3 border border-zinc-200 rounded-lg bg-zinc-50">
-                  <span className="font-medium text-zinc-900">{assignment.users?.name || 'Unknown Artist'}</span>
+                <div key={assignment.id} className="flex items-center justify-between p-3 border border-zinc-200 dark:border-hermes-teal/30 rounded-none bg-zinc-50 dark:bg-hermes-darkBg">
+                  <span className="font-medium text-zinc-900 dark:text-hermes-ivory">{assignment.users?.name || 'Unknown Artist'}</span>
                   <button
                     onClick={() => handleRemoveArtist(assignment.artist_id)}
                     className="text-zinc-400 hover:text-red-600 transition-colors"
@@ -177,14 +190,14 @@ export const ManagerConventionDetails = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
-        <div className="p-4 border-b border-zinc-200 bg-zinc-50">
-          <h2 className="text-lg font-bold text-zinc-900">Orders Archive</h2>
+      <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30 overflow-hidden">
+        <div className="p-4 border-b border-zinc-200 dark:border-hermes-teal/30 bg-zinc-50 dark:bg-hermes-darkBg">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-hermes-ivory">Orders Archive</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-zinc-50 text-zinc-500 text-xs uppercase tracking-wider border-b border-zinc-200">
+              <tr className="bg-zinc-50 dark:bg-hermes-darkBg text-zinc-500 dark:text-hermes-teal text-xs uppercase tracking-wider border-b border-zinc-200 dark:border-hermes-teal/30">
                 <th className="px-6 py-4 font-medium">Customer</th>
                 <th className="px-6 py-4 font-medium">Artist</th>
                 <th className="px-6 py-4 font-medium">Amount</th>
@@ -193,25 +206,25 @@ export const ManagerConventionDetails = () => {
             </thead>
             <tbody className="divide-y divide-zinc-200">
               {orders.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500">No orders recorded for this convention.</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500 dark:text-hermes-teal">No orders recorded for this convention.</td></tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-zinc-50">
+                  <tr key={order.id} className="hover:bg-zinc-50 dark:bg-hermes-darkBg">
                     <td className="px-6 py-4">
-                      <p className="font-bold text-zinc-900">{order.appointments?.customers?.name || 'Unknown'}</p>
-                      <p className="text-xs text-zinc-500">{order.appointments?.tattoo_type}</p>
+                      <p className="font-bold text-zinc-900 dark:text-hermes-ivory">{order.appointments?.customers?.name || 'Unknown'}</p>
+                      <p className="text-xs text-zinc-500 dark:text-hermes-teal">{order.appointments?.tattoo_type}</p>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-zinc-700">
+                    <td className="px-6 py-4 text-sm font-medium text-zinc-700 dark:text-hermes-ivoryDim">
                       {order.users?.name || 'Unassigned'}
                     </td>
-                    <td className="px-6 py-4 font-medium text-zinc-900">
+                    <td className="px-6 py-4 font-medium text-zinc-900 dark:text-hermes-ivory">
                       ${order.total_amount}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                        ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 
-                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                          'bg-orange-100 text-orange-800'}`}>
+                        ${order.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 
+                          'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'}`}>
                         {order.status.replace('_', ' ')}
                       </span>
                     </td>
