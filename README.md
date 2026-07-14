@@ -1,57 +1,90 @@
-# React + TypeScript + Vite
+# Tattoo Convention Operations System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A bilingual operations dashboard for tattoo studios that attend multiple conventions. It gives managers and artists one place to coordinate events, appointments, travel, accommodation, orders, and finances.
 
-Currently, two official plugins are available:
+## The problem
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Convention work is usually split across spreadsheets, chat threads, calendars, and payment notes. That makes it easy to double-book artists, lose customer requirements, miss travel details, or discover profitability only after the event.
 
-## Expanding the ESLint configuration
+This project models the workflow as one shared system with separate manager and artist views.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## What is included
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Manager workspace
+
+- Convention planning and event details
+- Artist and appointment coordination
+- Order tracking
+- Accommodation and travel records
+- Convention-level financial reporting
+- Dashboard summaries for active work
+
+### Artist workspace
+
+- Assigned conventions and schedules
+- Appointment details
+- Accommodation information
+- Personal dashboard for upcoming work
+
+### Product foundations
+
+- English and French interfaces
+- Light and dark themes
+- Responsive navigation
+- Supabase authentication, database, storage, and realtime integration
+- SQL migrations for the initial schema and later feature additions
+- Optional AI-provider configuration
+
+## Technology
+
+- React 18 and TypeScript
+- Vite and Tailwind CSS
+- Supabase
+- Zustand
+- React Router
+- i18next
+
+## Run locally
+
+Requirements: Node.js 20+ and a Supabase project.
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Configure the values in `.env` before signing in:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```text
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_GOOGLE_API_KEY=
+VITE_OPENROUTER_API_KEY=
 ```
+
+The AI-related keys are optional unless the corresponding integration is used. Never commit real credentials.
+
+## Verification
+
+```bash
+npm run check
+npm run build
+```
+
+The repository currently passes TypeScript checking and the production build. Static-analysis cleanup and bundle splitting remain engineering follow-ups before treating the project as a production release.
+
+## Project status
+
+This is a functional product prototype and portfolio case study, not a hosted SaaS service. Before a production deployment, complete the following for the target studio:
+
+- Review Supabase row-level security and storage policies
+- Add automated tests for critical booking and finance flows
+- Configure monitoring, backups, and recovery procedures
+- Split the main JavaScript bundle
+- Complete accessibility and browser testing
+- Confirm privacy, retention, and payment requirements for the operating country
+
+## Custom development
+
+The architecture can be adapted for a studio's real convention workflow, including custom roles, deposits, customer intake, flash inventory, artist commissions, and reporting. Commercial deployment should begin with a short workflow audit and a fixed-scope pilot rather than a large rewrite.
