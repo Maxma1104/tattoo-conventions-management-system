@@ -6,6 +6,7 @@ import { Calendar, MapPin, DollarSign, ArrowLeft, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/useAuthStore';
 import { supabase } from '../../lib/supabase';
+import {ConventionCosts} from '../../components/ConventionCosts';
 
 export const ArtistConventionDetails = () => {
   const { t } = useTranslation();
@@ -84,9 +85,11 @@ export const ArtistConventionDetails = () => {
         </div>
         <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg p-6 rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30 bg-green-50/50 border-green-100">
           <p className="text-sm text-green-700 font-medium flex items-center gap-2 mb-2"><DollarSign className="w-4 h-4" /> My Earnings (40%)</p>
-          <p className="text-2xl font-bold text-green-700">${artistRevenue.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-700">€{artistRevenue.toFixed(2)}</p>
         </div>
       </div>
+
+      <ConventionCosts key={convention.id} convention={convention} readOnly/>
 
       <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30 overflow-hidden">
         <div className="p-4 border-b border-zinc-200 dark:border-hermes-teal/30 bg-zinc-50 dark:bg-hermes-darkBg">
@@ -115,7 +118,7 @@ export const ArtistConventionDetails = () => {
                       {order.appointments?.tattoo_type}
                     </td>
                     <td className="px-6 py-4 font-medium text-zinc-900 dark:text-hermes-ivory">
-                      ${order.total_amount}
+                      €{order.total_amount}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize

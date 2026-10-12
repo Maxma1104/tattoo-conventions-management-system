@@ -5,6 +5,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getConventionWithOrders, getConventionAssignments, getArtists, applyForConvention, cancelConventionApplication } from '../../lib/api';
 import { Calendar, MapPin, DollarSign, ArrowLeft, Users, Package, UserPlus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import {ConventionCosts} from '../../components/ConventionCosts';
+import {conventionCostTotal} from '../../lib/convention-costs';
 
 export const ManagerConventionDetails = () => {
   const { t } = useTranslation();
@@ -16,6 +18,7 @@ export const ManagerConventionDetails = () => {
   const [allArtists, setAllArtists] = useState<any[]>([]);
   const [selectedArtistToAdd, setSelectedArtistToAdd] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [costPreview,setCostPreview]=useState<number|null>(null);
 
   useEffect(() => {
     fetchData();
@@ -93,7 +96,7 @@ export const ManagerConventionDetails = () => {
   const accomFee = Number(convention.accommodation_fee || 0);
   const travelFee = Number(convention.travel_fee || 0);
   const foodFee = Number(convention.food_fee || 0);
-  const fixedCosts = boothFee + accomFee + travelFee + foodFee;
+  const fixedCosts = costPreview ?? conventionCostTotal(convention);
 
   // Net Profit
   const netProfit = totalRevenue - totalArtistCommission - fixedCosts;
@@ -129,17 +132,19 @@ export const ManagerConventionDetails = () => {
         </div>
         <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg p-6 rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30">
           <p className="text-sm text-zinc-500 dark:text-hermes-teal font-medium flex items-center gap-2 mb-2"><DollarSign className="w-4 h-4" /> Total Revenue</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory">${totalRevenue.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-hermes-ivory">€{totalRevenue.toFixed(2)}</p>
         </div>
         <div className={`p-6 rounded-none shadow-sm border ${netProfit >= 0 ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
           <p className={`text-sm font-medium flex items-center gap-2 mb-2 ${netProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
             <DollarSign className="w-4 h-4" /> Net Profit
           </p>
           <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-800' : 'text-red-800'}`}>
-            ${netProfit.toFixed(2)}
+            €{netProfit.toFixed(2)}
           </p>
         </div>
       </div>
+
+      <ConventionCosts key={convention.id} convention={convention} onSaved={setConvention} onTotalChange={setCostPreview}/>
 
       {/* Artists Assigned Section */}
       <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none shadow-sm border border-zinc-200 dark:border-hermes-teal/30 overflow-hidden">
@@ -218,7 +223,7 @@ export const ManagerConventionDetails = () => {
                       {order.users?.name || 'Unassigned'}
                     </td>
                     <td className="px-6 py-4 font-medium text-zinc-900 dark:text-hermes-ivory">
-                      ${order.total_amount}
+                      €{order.total_amount}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize

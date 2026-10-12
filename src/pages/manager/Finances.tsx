@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { getConventions, getOrders, updateConvention, getConventionStatus } from '../../lib/api';
 import { DollarSign, TrendingUp, Save, Users, MapPin, Building, Car, Coffee, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import {ConventionCosts} from '../../components/ConventionCosts';
+import {conventionCostTotal} from '../../lib/convention-costs';
 
 export const ManagerFinances = () => {
   const { t } = useTranslation();
@@ -119,7 +121,9 @@ export const ManagerFinances = () => {
   const travelFee = parseFloat(costs.travel_fee) || 0;
   const foodFee = parseFloat(costs.food_fee) || 0;
 
-  const fixedCosts = boothFee + accomFee + travelFee + foodFee;
+  const selectedConvention=conventions.find(c=>c.id===selectedConvId);
+  const hasManualCosts=Array.isArray(selectedConvention?.cost_items);
+  const fixedCosts = hasManualCosts ? conventionCostTotal(selectedConvention) : boothFee + accomFee + travelFee + foodFee;
   const totalCosts = fixedCosts + totalArtistCommission;
   const netProfit = totalRevenue - totalCosts;
 
@@ -160,25 +164,26 @@ export const ManagerFinances = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-6 border border-zinc-200 dark:border-hermes-teal/30 shadow-sm flex flex-col justify-center">
               <p className="text-sm font-medium text-zinc-500 dark:text-hermes-teal mb-1">{t("dashboard.totalRevenue")}</p>
-              <p className="text-3xl font-bold text-zinc-900 dark:text-hermes-ivory">${totalRevenue.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-zinc-900 dark:text-hermes-ivory">€{totalRevenue.toFixed(2)}</p>
             </div>
             <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-6 border border-zinc-200 dark:border-hermes-teal/30 shadow-sm flex flex-col justify-center">
               <p className="text-sm font-medium text-zinc-500 dark:text-hermes-teal mb-1">Operating Costs</p>
-              <p className="text-3xl font-bold text-orange-600">${fixedCosts.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-orange-600">€{fixedCosts.toFixed(2)}</p>
             </div>
             <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none p-6 border border-zinc-200 dark:border-hermes-teal/30 shadow-sm flex flex-col justify-center">
               <p className="text-sm font-medium text-zinc-500 dark:text-hermes-teal mb-1">Artist Commissions (40%)</p>
-              <p className="text-3xl font-bold text-blue-600">${totalArtistCommission.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-blue-600">€{totalArtistCommission.toFixed(2)}</p>
             </div>
             <div className={`rounded-none p-6 border shadow-sm flex flex-col justify-center ${netProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               <p className={`text-sm font-medium mb-1 ${netProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>Net Profit</p>
               <p className={`text-3xl font-bold ${netProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                ${netProfit.toFixed(2)}
+                €{netProfit.toFixed(2)}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {hasManualCosts ? <ConventionCosts key={selectedConvId} convention={selectedConvention} onSaved={updated=>setConventions(cs=>cs.map(c=>c.id===updated.id?{...c,...updated}:c))}/> : (<>
             {/* Operating Costs Form */}
             <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none border border-zinc-200 dark:border-hermes-teal/30 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-zinc-100 dark:border-hermes-teal/30 bg-zinc-50 dark:bg-hermes-darkBg">
@@ -255,6 +260,8 @@ export const ManagerFinances = () => {
                 </div>
               </form>
             </div>
+
+            </>)}
 
             {/* Artist Breakdown */}
             <div className="hermes-card bg-white/20 dark:bg-hermes-darkBg/30 backdrop-blur-md border border-white/30 dark:border-hermes-teal/30 shadow-lg rounded-none border border-zinc-200 dark:border-hermes-teal/30 shadow-sm overflow-hidden flex flex-col">
